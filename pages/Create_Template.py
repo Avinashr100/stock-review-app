@@ -1,14 +1,13 @@
 import streamlit as st
-import os
+from firebase_utils import load_template_from_firebase, save_template_to_firebase
+from firebase_loader import init_firebase
 import json
 
-TEMPLATE_DIR = "templates"
-os.makedirs(TEMPLATE_DIR, exist_ok=True)
+init_firebase()
 PASSWORD = "Changed@123"
 
 st.title("📝 Create/Edit Stock Template")
 
-# Load stock name from session or prompt input
 if "stock_name" in st.session_state and st.session_state.stock_name:
     stock_name = st.session_state.stock_name
     st.text_input("Stock Name", value=stock_name, disabled=True, key="existing_stock")
@@ -16,18 +15,10 @@ else:
     stock_name = st.text_input("Enter Stock Name", key="new_stock")
 
 if stock_name:
-    file_path = os.path.join(TEMPLATE_DIR, f"{stock_name}.json")
-
-    if os.path.exists(file_path):
-        with open(file_path, "r") as f:
-            data = json.load(f)
-    else:
-        data = {}
-
+    data = load_template_from_firebase(stock_name) or {}
     signed_off = data.get("signed_off", False)
     revision = data.get("revision", 0)
 
-    # Unlock section
     if signed_off and not st.session_state.get("unlocked", False):
         st.warning("🔒 This template is signed off. Enter password to edit.")
         password = st.text_input("Enter password", type="password", key="unlock_password")
@@ -95,15 +86,13 @@ if stock_name:
             revision += 1
             data["revision"] = revision
             data["signed_off"] = False
-            with open(file_path, "w") as f:
-                json.dump(data, f, indent=4)
+            save_template_to_firebase(stock_name, data)
             st.success("Template saved.")
 
     if not is_locked:
         if st.button("🔒 Sign Off"):
             data["signed_off"] = True
-            with open(file_path, "w") as f:
-                json.dump(data, f, indent=4)
+            save_template_to_firebase(stock_name, data)
             st.success("Template signed off.")
 else:
     st.info("Please enter a stock name to begin.")

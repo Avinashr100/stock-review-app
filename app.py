@@ -1,4 +1,7 @@
 import streamlit as st
+from firebase_loader import init_firebase
+
+init_firebase()
 
 st.set_page_config(page_title="Stock Review Dashboard")
 
