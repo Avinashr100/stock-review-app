@@ -23,8 +23,8 @@ if template_files:
 
         col1, col2 = st.columns([0.8, 0.2])
         with col1:
-            st.markdown(f"**{stock_name}**  
-Revision: {data.get('revision', 0)} | Signed Off: {'✅' if data.get('signed_off') else '❌'}")
+            st.write(f"**{stock_name}**")
+            st.write(f"Revision: {data.get('revision', 0)} | Signed Off: {'✅' if data.get('signed_off') else '❌'}")
         with col2:
             if st.button("Open", key=stock_name):
                 st.session_state.stock_name = stock_name
