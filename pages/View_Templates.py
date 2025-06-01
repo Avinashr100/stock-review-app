@@ -17,8 +17,7 @@ if search_term:
 if template_files:
     for filename in template_files:
         stock_name = filename.replace(".json", "")
-        filepath = os.path.join(TEMPLATE_DIR, filename)
-        with open(filepath, "r") as f:
+        with open(os.path.join(TEMPLATE_DIR, filename), "r") as f:
             data = json.load(f)
 
         col1, col2 = st.columns([0.8, 0.2])
