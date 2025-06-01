@@ -43,13 +43,14 @@ if stock_name:
     
     if signed_off and not st.session_state.get("unlocked", False) and st.session_state.get("stock_name") == stock_name:
         st.warning("🔒 This template is signed off. Viewing is allowed. To edit, enter password below.")
-        password_input = st.text_input("Enter password to unlock for editing", type="password")
+        password_input = st.text_input("Enter password", type="password")
         if password_input == PASSWORD:
             st.session_state.unlocked = True
-            st.success("Template unlocked for editing.")
+            st.session_state.password_input = password_input
+        st.session_state.unlock_attempt = True
 
         st.warning("🔒 This template is signed off and locked.")
-        password_input = st.text_input("Enter password to unlock for editing", type="password")
+        password_input = st.text_input("Enter password", type="password")
         if password_input == PASSWORD:
             st.session_state.unlocked = True
             st.success("Template unlocked.")
@@ -57,17 +58,24 @@ if stock_name:
             st.stop()
 
     # Form
+    if signed_off and not st.session_state.get("unlocked", False):
+        if st.button("🔓 Unlock Template"):
+            if st.session_state.get("password_input") == PASSWORD:
+                st.session_state.unlocked = True
+                st.success("Template unlocked for editing.")
+            else:
+                st.error("Incorrect password. Please try again.")
     with st.form("template_form"):
         st.subheader("Company Fundamentals")
-        data["company_description"] = st.text_area("What does the company do, and how does it make money?", value=data.get("company_description", ""))
-        data["financial_stability"] = st.text_area("Is the company financially stable?", value=data.get("financial_stability", ""))
-        data["competitive_advantage"] = st.text_area("What is the company's competitive advantage or USP?", value=data.get("competitive_advantage", ""))
-        data["management_team"] = st.text_area("How experienced and reliable is the management team?", value=data.get("management_team", ""))
-        data["growth_history"] = st.text_area("Does the company have a history of consistent growth?", value=data.get("growth_history", ""))
+        data["company_description"] = st.text_area("What does the company do, and how does it make money?", value=data.get("company_description", ""), disabled=signed_off and not st.session_state.get("unlocked", False))
+        data["financial_stability"] = st.text_area("Is the company financially stable?", value=data.get("financial_stability", ""), disabled=signed_off and not st.session_state.get("unlocked", False))
+        data["competitive_advantage"] = st.text_area("What is the company's competitive advantage or USP?", value=data.get("competitive_advantage", ""), disabled=signed_off and not st.session_state.get("unlocked", False))
+        data["management_team"] = st.text_area("How experienced and reliable is the management team?", value=data.get("management_team", ""), disabled=signed_off and not st.session_state.get("unlocked", False))
+        data["growth_history"] = st.text_area("Does the company have a history of consistent growth?", value=data.get("growth_history", ""), disabled=signed_off and not st.session_state.get("unlocked", False))
 
         st.subheader("Stock Performance & Valuation")
         data["valuation"] = {
-            "PE Ratio": st.text_input("P/E Ratio", value=data.get("valuation", {}).get("PE Ratio", "")),
+            "PE Ratio": st.text_input("P/E Ratio", value=data.get("valuation", {}).get("PE Ratio", ""), disabled=signed_off and not st.session_state.get("unlocked", False)),
             "ROE": st.text_input("ROE", value=data.get("valuation", {}).get("ROE", "")),
             "ROCE": st.text_input("ROCE", value=data.get("valuation", {}).get("ROCE", "")),
             "Sales Growth 5Y": st.text_input("Sales Growth (5Y)", value=data.get("valuation", {}).get("Sales Growth 5Y", "")),
@@ -98,7 +106,7 @@ if stock_name:
         
         data["reason_for_sale"] = st.text_area("Reason for Sale", value=data.get("reason_for_sale", ""))
         data["repurchase_future"] = st.text_input("Will this be repurchased in future?", value=data.get("repurchase_future", ""))
-        uploaded_file = st.file_uploader("Upload working Excel file", type=["xlsx", "xls"])
+        uploaded_file = st.file_uploader("Upload working Excel file", type=["xlsx", "xls"], disabled=signed_off and not st.session_state.get("unlocked", False))
 
         if uploaded_file:
             data["uploaded_file_name"] = uploaded_file.name
